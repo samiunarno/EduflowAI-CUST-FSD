@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { User, Student } from "../models/index.ts";
+import { v4 as uuidv4 } from "uuid";
+import db from "../db.ts";
 import { logActivity } from "../services/logger.service.ts";
 import { sendEmail } from "../services/email.service.ts";
 
@@ -13,12 +14,13 @@ export const register = async (req: Request, res: Response) => {
     let userRole = role || 'teacher';
     
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ email, password: hashedPassword, name, role: userRole });
-    await user.save();
-
-    await logActivity(user._id as any, "User Registered", { role: userRole });
+    const userId = uuidv4();
     
-    // Trigger notification
+    const stmt = db.prepare('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)');
+    stmt.run(userId, name, email, hashedPassword, userRole);
+
+    await logActivity(userId, "User Registered", { role: userRole });
+    
     try {
       await sendEmail({
         to: email,
@@ -30,43 +32,56 @@ export const register = async (req: Request, res: Response) => {
     }
 
     res.status(201).json({ message: "User registered" });
-  } catch (error) {
-    res.status(400).json({ error: "Registration failed", details: error });
+  } catch (error: any) {
+    console.error("Registration error:", error);
+    res.status(400).json({ error: "Registration failed", details: error.message });
   }
 };
 
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user: any = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    const isMatch = await bcrypt.compare(password, user.password as string);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '1d' });
-    await logActivity((user as any)._id, "User Login");
+    const token = jwt.sign({ id: user.id, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '1d' });
+    await logActivity(user.id, "User Login");
     
     res.json({ token, role: user.role, name: user.name });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Login error:", error);
     res.status(500).json({ error: "Login failed" });
   }
 };
 
 export const setupDemo = async (req: Request, res: Response) => {
   try {
-    const existingAdmin = await User.findOne({ role: 'admin' });
+    const existingAdmin = db.prepare('SELECT * FROM users WHERE role = ?').get('admin');
     if (!existingAdmin) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
-      await new User({ email: 'admin@system.com', name: 'Super Admin', password: hashedPassword, role: 'admin' }).save();
+      db.prepare('INSERT INTO users (id, email, name, password, role) VALUES (?, ?, ?, ?, ?)').run(
+        uuidv4(), 'admin@system.com', 'Super Admin', hashedPassword, 'admin'
+      );
     }
     
     // Seed some data
-    await new Student({ name: 'John Doe', course: 'Math 101', marks: 85, assignments: [{ title: 'A1', score: 90 }] }).save();
-    await new Student({ name: 'Jane Smith', course: 'Physics 202', marks: 92, assignments: [{ title: 'A1', score: 95 }] }).save();
+    const student1Id = uuidv4();
+    db.prepare('INSERT INTO students (id, name, course, marks, assignments) VALUES (?, ?, ?, ?, ?)').run(
+      student1Id, 'John Doe', 'Math 101', 85, JSON.stringify([{ title: 'A1', score: 90 }])
+    );
+
+    const student2Id = uuidv4();
+    db.prepare('INSERT INTO students (id, name, course, marks, assignments) VALUES (?, ?, ?, ?, ?)').run(
+      student2Id, 'Jane Smith', 'Physics 202', 92, JSON.stringify([{ title: 'A1', score: 95 }])
+    );
     
     res.json({ message: "Demo data setup completed" });
-  } catch(error) {
+  } catch(error: any) {
+    console.error("Setup error:", error);
     res.status(500).json({ error: "Setup failed" });
   }
 };
@@ -74,11 +89,10 @@ export const setupDemo = async (req: Request, res: Response) => {
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    const user: any = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
     
     if (user) {
-      // Create a dummy token for simplicity in demo
-      const resetToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '15m' });
+      const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '15m' });
       const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
       
       try {
@@ -87,13 +101,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
           subject: 'Password Reset Request',
           html: `<h3>Hello ${user.name},</h3><p>You requested a password reset. Please click the link below to securely reset your credentials:</p><p><a href="${resetUrl}">Reset Password</a></p><p>This link will expire in 15 minutes.</p>`
         });
-        await logActivity((user as any)._id, "Password Reset Email Sent");
+        await logActivity(user.id, "Password Reset Email Sent");
       } catch (e) {
         console.error("Failed to send reset email:", e);
       }
     }
     
-    // Always return success to prevent email enumeration
     res.json({ message: "If that explicit email exists, a reset link has been dispatched." });
   } catch (error) {
     res.status(500).json({ error: "Failed to process request" });
@@ -105,11 +118,11 @@ export const resetPassword = async (req: Request, res: Response) => {
     const { token, newPassword } = req.body;
     const decoded: any = jwt.verify(token, JWT_SECRET);
     
-    const user = await User.findById(decoded.id);
+    const user: any = db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.id);
     if (!user) return res.status(404).json({ error: "Invalid token or user not found" });
     
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashedPassword, user.id);
     
     try {
       await sendEmail({
@@ -117,7 +130,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         subject: 'Password Successfully Changed',
         html: `<h3>Hello ${user.name},</h3><p>Your EdTech Platform password has been successfully altered. If you did not make this change, please contact an administrator immediately.</p>`
       });
-      await logActivity((user as any)._id, "Password Successfully Reset via Token");
+      await logActivity(user.id, "Password Successfully Reset via Token");
     } catch (e) {
       console.error("Failed to send success email:", e);
     }

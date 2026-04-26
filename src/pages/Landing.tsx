@@ -1,359 +1,324 @@
 import { Link } from 'react-router';
 import { motion } from 'framer-motion';
-import { BrainCircuit, BookOpen, BarChart3, ChevronRight, CheckCircle2, ShieldCheck, Activity, Database, Workflow, Lock, Zap } from 'lucide-react';
-
-// --- Animation Core ---
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 20 } }
-};
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.15 } }
-};
-
-// --- Decorative Schematic Grid ---
-const SchematicGrid = () => (
-  <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
-        <path d="M0 40L40 40M40 0L40 40" stroke="white" strokeWidth="1" fill="none" />
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-  </svg>
-);
+import { BrainCircuit, BookOpen, BarChart3, ChevronRight, CheckCircle2, ShieldCheck, Activity, Database, Workflow, Lock, Zap, Languages, Globe, Cpu, Layers } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Landing() {
-  return (
-    <div className="min-h-screen bg-[#020202] text-zinc-400 font-sans selection:bg-white/20 selection:text-white overflow-hidden relative">
-      <SchematicGrid />
-      
-      {/* Cinematic Lighting Orbs */}
-      <div className="absolute top-[-20%] left-[20%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-indigo-900/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[-10%] w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] bg-emerald-900/10 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
+  const { t, language, setLanguage } = useLanguage();
 
-      {/* Edge-to-Edge Architectural Nav */}
-      <motion.nav 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.05] bg-black/50 backdrop-blur-3xl"
-      >
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 h-[72px] flex items-center justify-between">
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.2, delayChildren: 0.3 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA] text-zinc-900 font-sans selection:bg-indigo-500/20 overflow-hidden relative">
+      <div className="absolute inset-0 bg-grid-pattern opacity-100 pointer-events-none" />
+      
+      {/* 1. Navigation */}
+      <nav className="border-b border-zinc-200/60 bg-white/70 backdrop-blur-2xl sticky top-0 z-50">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 h-[80px] flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10">
-              <BrainCircuit className="w-4 h-4 text-white" />
+            <div className="bg-zinc-900 p-2.5 rounded-2xl shadow-xl transform hover:rotate-6 transition-transform">
+              <BrainCircuit className="w-6 h-6 text-indigo-400" />
             </div>
-            <span className="font-display font-medium text-[16px] text-white tracking-widest uppercase">
-              CUST-AI
+            <span className="font-display font-black text-[24px] text-zinc-900 tracking-tighter uppercase italic">
+              EDU-AI
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-10 text-[11px] font-mono tracking-widest uppercase text-zinc-500">
-            <a href="#features" className="hover:text-white transition-colors relative group">
-              Platform
-              <span className="absolute -bottom-3 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-            </a>
-            <a href="#architecture" className="hover:text-white transition-colors relative group">
-              Architecture
-              <span className="absolute -bottom-3 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-            </a>
-            <a href="#security" className="hover:text-white transition-colors relative group">
-              Security
-              <span className="absolute -bottom-3 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-            </a>
+          
+          <div className="hidden lg:flex items-center gap-10 text-[13px] font-bold text-zinc-400 uppercase tracking-widest">
+            <a href="#features" className="hover:text-zinc-900 transition-colors">{t.nav.platform}</a>
+            <a href="#architecture" className="hover:text-zinc-900 transition-colors">{t.nav.architecture}</a>
+            <a href="#security" className="hover:text-zinc-900 transition-colors">{t.nav.security}</a>
+            <a href="#pricing" className="hover:text-zinc-900 transition-colors">{t.pricing?.title || "Pricing"}</a>
           </div>
-          <div className="flex items-center gap-6">
-            <Link to="/login" className="text-[12px] font-mono tracking-wider text-zinc-400 hover:text-white transition-colors hidden sm:block">
-              // LOGIN
+
+          <div className="flex items-center gap-4">
+             <button 
+              onClick={() => setLanguage(language === 'en' ? 'zh' : 'en')}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-zinc-200 text-zinc-600 text-[12px] font-bold hover:bg-zinc-50 transition-colors"
+            >
+              <Globe className="w-4 h-4 text-indigo-500" />
+              <span>{language === 'en' ? 'EN' : 'ZH'}</span>
+            </button>
+            <Link to="/login" className="text-[14px] font-bold text-zinc-600 hover:text-zinc-900 px-4 py-2">
+              {t.nav.login}
             </Link>
-            <Link to="/register" className="relative group overflow-hidden bg-white text-black text-[11px] font-mono font-bold uppercase tracking-widest px-6 py-3 rounded-none">
-              <span className="relative z-10">Deploy Now</span>
-              <div className="absolute inset-0 bg-zinc-200 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+            <Link to="/register" className="bg-zinc-900 hover:bg-zinc-800 text-white text-[14px] font-bold px-7 py-3 rounded-full transition-all shadow-2xl hover:scale-105 active:scale-95">
+              {t.nav.deploy}
             </Link>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
-      {/* 1. Hero Section */}
-      <main className="relative z-10 w-full pt-48 pb-32 lg:pt-56 lg:pb-40 border-b border-white/[0.05]">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 relative">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            
-            {/* Left Content */}
-            <motion.div initial="hidden" animate="visible" variants={stagger} className="lg:col-span-7">
-              <motion.div variants={fadeUp} className="flex items-center gap-3 mb-8">
-                <span className="h-[1px] w-8 bg-indigo-500"></span>
-                <span className="text-[10px] font-mono text-indigo-400 tracking-[0.2em] uppercase">Multi-Model Live Runtime</span>
-              </motion.div>
-              
-              <motion.h1 variants={fadeUp} className="font-display text-5xl sm:text-6xl lg:text-[84px] font-medium text-white leading-[1.05] tracking-tighter mb-8">
-                Industrial-grade<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/80 to-white/20">
-                  educational analytics.
-                </span>
-              </motion.h1>
-              
-              <motion.p variants={fadeUp} className="text-lg text-zinc-500 mb-12 leading-relaxed font-light max-w-xl">
-                Enterprise architecture uniting AI Trainers, Educators, and Administrators. We process raw academic datasets natively, strictly without student-facing endpoints to ensure data sovereignty.
-              </motion.p>
-              
-              <motion.div variants={fadeUp} className="flex items-center gap-6">
-                <Link to="/register" className="group flex items-center justify-between gap-6 bg-white/5 border border-white/10 hover:bg-white/10 text-white px-6 py-4 transition-all w-full sm:w-auto backdrop-blur-md">
-                  <span className="text-[13px] font-mono uppercase tracking-widest">Initialize Environment</span>
-                  <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </Link>
-                <div className="hidden sm:flex flex-col gap-1">
-                  <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">Sys_Status</span>
-                  <span className="flex items-center gap-2 text-[11px] font-mono text-emerald-500"><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> ONLINE</span>
-                </div>
-              </motion.div>
+      {/* 2. Hero Section */}
+      <section className="relative pt-24 pb-32 lg:pt-40 lg:pb-48 overflow-hidden">
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+        <div className="absolute bottom-0 left-[-5%] w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
+        
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 text-center">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="max-w-4xl mx-auto"
+          >
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-zinc-200/60 text-zinc-800 text-[12px] font-black uppercase tracking-widest mb-10 shadow-sm ring-4 ring-zinc-50">
+              <Cpu className="w-4 h-4 text-indigo-600" />
+              {t.hero.badge}
             </motion.div>
-
-            {/* Right Graphic: The Schematic Panel */}
-            <motion.div initial={{ opacity: 0, filter: 'blur(20px)' }} animate={{ opacity: 1, filter: 'blur(0px)' }} transition={{ duration: 1.2, delay: 0.3 }} className="lg:col-span-5 relative hidden lg:block">
-              {/* Glass Terminal */}
-              <div className="relative bg-black/40 backdrop-blur-2xl border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] p-1 rounded-sm">
-                <div className="border border-white/[0.05] bg-black/60 p-6 relative">
-                  {/* Decorative corners */}
-                  <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30"></div>
-                  <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/30"></div>
-                  <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/30"></div>
-                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30"></div>
-
-                  <div className="flex items-center justify-between border-b border-white/[0.05] pb-4 mb-6">
-                    <div className="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Process_Log // Zhipu-Gemini</div>
-                    <Activity className="w-4 h-4 text-indigo-500" />
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <div className="relative pl-6 border-l border-white/[0.05]">
-                      <div className="absolute -left-[5px] top-1 w-2 h-2 bg-indigo-500/20 border border-indigo-500 rounded-full"></div>
-                      <div className="text-[13px] text-white font-medium mb-1">Automated Ingestion</div>
-                      <div className="text-[11px] font-mono text-zinc-500 leading-relaxed">Processing 2,400 structured rows via secure memory streams.</div>
-                    </div>
-                    
-                    <div className="relative pl-6 border-l border-white/[0.05]">
-                      <div className="absolute -left-[5px] top-1 w-2 h-2 bg-emerald-500/20 border border-emerald-500 rounded-full"></div>
-                      <div className="text-[13px] text-white font-medium mb-1">Model Output Generated</div>
-                      <div className="text-[11px] font-mono text-zinc-500 leading-relaxed">Similarity index locked at <span className="text-white">98.2%</span> against targeted heuristics.</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 pt-4 border-t border-white/[0.05] flex justify-between items-center text-[9px] font-mono text-zinc-600">
-                    <span>MEM_USAGE: 42%</span>
-                    <span>LATENCY: 12ms</span>
-                  </div>
+            
+            <motion.h1 variants={itemVariants} className="font-display text-6xl md:text-[88px] font-black text-zinc-900 leading-[0.95] mb-8 tracking-tighter italic">
+              {t.hero.title_part1} <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-500">
+                {t.hero.title_part2}
+              </span>
+            </motion.h1>
+            
+            <motion.p variants={itemVariants} className="text-[18px] md:text-[22px] text-zinc-500 mb-12 leading-relaxed font-semibold max-w-2xl mx-auto">
+              {t.hero.description}
+            </motion.p>
+            
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-center gap-6">
+              <Link to="/register" className="group bg-indigo-600 hover:bg-indigo-700 text-white font-black px-10 py-5 rounded-full flex items-center justify-center gap-3 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.25)] hover:-translate-y-1">
+                {t.hero.cta}
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <div className="flex items-center gap-6 justify-center">
+                <div className="flex -space-x-3">
+                   {[1,2,3].map(i => (
+                     <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-500 shadow-sm overflow-hidden ring-1 ring-zinc-100">
+                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i+10}`} alt="user" className="w-full h-full object-cover" />
+                     </div>
+                   ))}
+                </div>
+                <div className="text-left leading-none">
+                  <div className="text-[14px] font-black text-zinc-900">4,200+</div>
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Faculty Deployments</div>
                 </div>
               </div>
             </motion.div>
-          </div>
-        </div>
-      </main>
-
-      {/* 2. Platform Capabilities (Architectural List) */}
-      <section id="features" className="relative py-32 border-b border-white/[0.05]">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div>
-              <div className="text-[10px] font-mono text-zinc-500 tracking-[0.2em] uppercase mb-4">01 // Access Architecture</div>
-              <h2 className="font-display text-4xl md:text-5xl font-medium text-white tracking-tight">Enterprise Role Segregation</h2>
-            </div>
-            <p className="text-zinc-500 font-light max-w-md text-[15px] leading-relaxed">Strict access controls ensuring only authorized faculty and engineers interact with sensitive data layers.</p>
-          </motion.div>
-          
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-3 gap-px bg-white/[0.05]">
-            {[
-              { icon: BarChart3, title: 'Administrators', p1: 'Global telemetry & RBAC oversight', p2: 'Node health & API state management' },
-              { icon: BookOpen, title: 'Educators', p1: 'Direct CSV/Dataset ingestion', p2: 'Real-time aggregation of student metrics' },
-              { icon: BrainCircuit, title: 'AI Trainers', p1: 'Model output evaluation & parsing', p2: 'Fine-tuning heuristics & similarity mapping' }
-            ].map((role, idx) => (
-              <motion.div key={idx} variants={fadeUp} className="bg-[#020202] p-10 lg:p-14 group relative overflow-hidden hover:bg-white/[0.02] transition-colors duration-500">
-                <div className="absolute top-0 right-0 p-6 text-[10px] font-mono text-zinc-700">0{idx + 1}</div>
-                <role.icon className="w-8 h-8 text-zinc-300 mb-12 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
-                <h3 className="font-display text-2xl font-medium text-white mb-6">{role.title}</h3>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-4 text-[13px] text-zinc-500 group-hover:text-zinc-400 transition-colors">
-                    <span className="w-1.5 h-1.5 bg-zinc-700 rounded-sm mt-1.5 shrink-0 group-hover:bg-white transition-colors"></span>
-                    {role.p1}
-                  </li>
-                  <li className="flex items-start gap-4 text-[13px] text-zinc-500 group-hover:text-zinc-400 transition-colors">
-                    <span className="w-1.5 h-1.5 bg-zinc-700 rounded-sm mt-1.5 shrink-0 group-hover:bg-white transition-colors"></span>
-                    {role.p2}
-                  </li>
-                </ul>
-              </motion.div>
-            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* 3. Architecture Section */}
-      <section id="architecture" className="relative py-32 border-b border-white/[0.05]">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-20 items-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="order-2 lg:order-1">
-            <div className="relative p-1 bg-white/[0.02] border border-white/[0.05]">
-               {/* Monospace Code Editor Vibe */}
-              <div className="bg-[#050505] border border-white/[0.05] p-6 relative">
-                <div className="flex gap-1.5 mb-6">
-                  <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
-                  <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
-                  <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
-                </div>
-                <div className="text-[10px] font-mono text-zinc-600 mb-4 uppercase tracking-widest border-b border-white/[0.05] pb-4">server/controllers/ai.controller.ts</div>
-                <pre className="text-[12px] md:text-[13px] font-mono leading-[2] overflow-x-auto text-zinc-400">
-                  <code>
-                    <span className="text-zinc-500">const</span> <span className="text-white">model</span> = <span className="text-zinc-500">await</span> AIModel.<span className="text-indigo-300">findOne</span>({'{'} isActive: <span className="text-emerald-400">true</span> {'}'});<br/>
-                    <span className="text-rose-400">if</span> (!model) <span className="text-rose-400">throw new</span> Error(<span className="text-amber-300">"No active models."</span>);<br/>
-                    <br/>
-                    <span className="text-zinc-500">const</span> <span className="text-white">response</span> = <span className="text-zinc-500">await</span> <span className="text-indigo-300">fetch</span>(model.apiDetails, {'{\n'}
-                    {'  '}method: <span className="text-amber-300">'POST'</span>,<br/>
-                    {'  '}body: JSON.<span className="text-indigo-300">stringify</span>(payload)<br/>
-                    {'}'});<br/>
-                    <span className="text-rose-400">return</span> response.<span className="text-indigo-300">json</span>();
-                  </code>
-                </pre>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="order-1 lg:order-2">
-            <motion.div variants={fadeUp} className="text-[10px] font-mono text-zinc-500 tracking-[0.2em] uppercase mb-4">02 // Core Systems</motion.div>
-            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-5xl font-medium text-white mb-6 tracking-tight">Pluggable LLM Architecture</motion.h2>
-            <motion.p variants={fadeUp} className="text-zinc-500 font-light text-[15px] leading-relaxed mb-12">Built to interface natively with Zhipu GLM-4, Google Gemini, and custom enterprise models. We handle the vector routing and embedding locally.</motion.p>
-            
-            <motion.div variants={stagger} className="space-y-8 border-l border-white/[0.05] pl-8">
-              <motion.div variants={fadeUp} className="relative">
-                <div className="absolute -left-[32.5px] top-1 w-2 h-2 bg-white rounded-full"></div>
-                <h4 className="font-mono text-[11px] tracking-widest uppercase text-white mb-2 flex items-center gap-2"><Database className="w-3 h-3 text-zinc-500"/> Persistent Streams</h4>
-                <p className="text-[13px] text-zinc-500 font-light leading-relaxed">All data firmly grounded in NoSQL collections without third-party replication layers.</p>
-              </motion.div>
-              <motion.div variants={fadeUp} className="relative">
-                <div className="absolute -left-[32.5px] top-1 w-2 h-2 bg-zinc-700 rounded-full"></div>
-                <h4 className="font-mono text-[11px] tracking-widest uppercase text-white mb-2 flex items-center gap-2"><Zap className="w-3 h-3 text-zinc-500"/> Synchronous Handlers</h4>
-                <p className="text-[13px] text-zinc-500 font-light leading-relaxed">Zero loading state drift. Real-time REST endpoints powered by highly optimized Express routers.</p>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 4. Workflow Section */}
-      <section className="relative py-32 border-b border-white/[0.05]">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-20">
-            <div className="text-[10px] font-mono text-zinc-500 tracking-[0.2em] uppercase mb-4 text-center">03 // Pipeline Sequence</div>
-            <h2 className="font-display text-4xl md:text-5xl font-medium text-white tracking-tight text-center">Structured Industrial Workflow</h2>
-          </motion.div>
-          
-          <div className="relative">
-            {/* Connecting line */}
-            <div className="hidden md:block absolute top-[28px] left-[10%] right-[10%] h-[1px] bg-white/[0.05] z-0"></div>
-            
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-4 gap-8 md:gap-4 relative z-10">
-              {[
-                { step: '01', title: 'Data Ingestion', sub: 'Teacher pushes raw CSV logs.' },
-                { step: '02', title: 'Sanitization', sub: 'Backend strips malformed rows.' },
-                { step: '03', title: 'Inference', sub: 'Models run heuristic checks.' },
-                { step: '04', title: 'Visualization', sub: 'UI binds data to Recharts.' }
-              ].map((s, i) => (
-                <motion.div key={i} variants={fadeUp} className="flex flex-col items-center text-center group">
-                  <div className="w-14 h-14 bg-[#020202] border border-white/[0.1] text-white font-mono text-[12px] flex items-center justify-center mb-6 group-hover:border-white transition-colors duration-500 relative">
-                    {/* Micro crosshairs */}
-                    <span className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-zinc-500"></span>
-                    <span className="absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-zinc-500"></span>
-                    {s.step}
-                  </div>
-                  <h4 className="font-mono text-[12px] uppercase tracking-widest text-white mb-3">{s.title}</h4>
-                  <p className="text-[13px] text-zinc-500 font-light">{s.sub}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Analytics Section */}
-      <section className="relative py-32 border-b border-white/[0.05] overflow-hidden">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-20 items-center">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 1, ease: "easeOut" }} className="order-2 lg:order-1 relative flex justify-center items-center h-[400px] bg-white/[0.01] border border-white/[0.05]">
-             {/* Architectural Data Rings */}
-             <div className="relative flex items-center justify-center w-full h-full">
-                <svg className="absolute w-[80%] h-[80%] opacity-20 animate-[spin_60s_linear_infinite]" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="48" fill="none" stroke="white" strokeWidth="0.2" strokeDasharray="2 4" />
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="white" strokeWidth="0.2" strokeDasharray="1 6" />
-                </svg>
-                
-                <svg className="absolute w-[60%] h-[60%] opacity-50 animate-[spin_40s_linear_infinite_reverse]" viewBox="0 0 100 100">
-                  <path d="M50 2 a 48 48 0 0 1 48 48" fill="none" stroke="white" strokeWidth="0.5" />
-                  <path d="M50 98 a 48 48 0 0 1 -48 -48" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3"/>
-                </svg>
-
-                <div className="z-10 text-center">
-                  <div className="font-display text-7xl font-light text-white tracking-tighter mb-2">92<span className="text-2xl text-zinc-600">%</span></div>
-                  <div className="text-[9px] font-mono uppercase tracking-[0.3em] text-zinc-500 border-t border-white/[0.1] pt-2">Class Average</div>
-                </div>
-             </div>
-          </motion.div>
-          
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="order-1 lg:order-2">
-            <motion.div variants={fadeUp} className="text-[10px] font-mono text-zinc-500 tracking-[0.2em] uppercase mb-4">04 // Data Topology</motion.div>
-            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-5xl font-medium text-white mb-6 tracking-tight">Definitive Realtime Analytics</motion.h2>
-            <motion.p variants={fadeUp} className="text-zinc-500 font-light text-[15px] leading-relaxed">No mock structures. When datasets arrive at the server, analytical geometry is derived instantly and broadcasted via static REST topologies, passing strictly through isolated memory environments.</motion.p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 6. Security Section */}
-      <section id="security" className="relative py-32 border-b border-white/[0.05]">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-           <div className="max-w-3xl mb-20">
-             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-               <ShieldCheck className="w-12 h-12 text-zinc-400 mb-8 stroke-[1px]" />
-             </motion.div>
-             <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="font-display text-4xl md:text-5xl font-medium text-white mb-6 tracking-tight">Institutional Compliance</motion.h2>
-             <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-zinc-500 font-light text-[15px] leading-relaxed">Security isn't a feature, it's the foundation. Protected perimeters ensure zero student-access vulnerabilities.</motion.p>
-           </div>
-           
-           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-3 gap-8">
+      {/* 3. Stats Section */}
+      <section className="bg-zinc-900 py-16">
+        <div className="max-w-[1400px] mx-auto px-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 divide-x divide-zinc-800">
              {[
-               { icon: Lock, title: 'JWT Bearer Enclaves', desc: 'Every route strictly requires HTTP auth validation through our global middleware stack.' },
-               { icon: Workflow, title: 'Student UI Omitted', desc: 'By intentionally omitting student login gateways, we eliminate lateral movement vectors.' },
-               { icon: Database, title: 'Isolated Process Logs', desc: 'Admin dashboards automatically track and persist all systemic mutations for audit trails.' }
-             ].map((item, idx) => (
-               <motion.div key={idx} variants={fadeUp} className="border-l border-white/[0.1] pl-6 py-2">
-                 <item.icon className="w-5 h-5 text-zinc-300 mb-6 stroke-[1.5px]" />
-                 <h4 className="font-mono text-[12px] uppercase tracking-widest text-white mb-3">{item.title}</h4>
-                 <p className="text-[13px] text-zinc-500 font-light leading-relaxed">{item.desc}</p>
+               { val: "99.9%", label: t.landing?.stats?.uptime || "SYSTEM UPTIME" },
+               { val: "98.2%", label: t.landing?.stats?.accuracy || "PREDICTION DELTA" },
+               { val: "2.5s", label: t.landing?.stats?.efficiency || "PROCESSING LATENCY" },
+               { val: "100%", label: "DATA SOVEREIGNTY" }
+             ].map((s, i) => (
+               <div key={i} className="pl-8 first:pl-0 border-l border-zinc-800 first:border-0">
+                 <div className="text-3xl font-black text-white mb-1">{s.val}</div>
+                 <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{s.label}</div>
+               </div>
+             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. AI Analysis Showcase */}
+      <section className="py-32 bg-white relative">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-24 items-center">
+          <div className="relative">
+            <div className="absolute -inset-4 bg-zinc-100 rounded-[40px] -rotate-2 -z-10" />
+            <div className="bg-white border-2 border-zinc-900 p-8 rounded-[32px] shadow-[24px_24px_0_0_rgba(0,0,0,0.03)] overflow-hidden">
+               <div className="flex items-center justify-between mb-8">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                     <Layers className="w-5 h-5 text-indigo-600" />
+                   </div>
+                   <div className="font-bold text-[16px]">Cognitive Heatmap</div>
+                 </div>
+                 <div className="h-6 px-3 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-full flex items-center">CALIBRATED</div>
+               </div>
+               <div className="space-y-6">
+                 {[85, 42, 70].map((w, i) => (
+                   <div key={i} className="space-y-2">
+                     <div className="flex justify-between text-[11px] font-bold text-zinc-400">
+                       <span className="uppercase tracking-widest">LAYER_{i+1} SEGMENT_NODE</span>
+                       <span>{w}%</span>
+                     </div>
+                     <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                        <motion.div 
+                          className={`h-full ${i === 1 ? 'bg-rose-500' : 'bg-indigo-500'}`}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${w}%` }}
+                          transition={{ duration: 1, delay: i * 0.2 }}
+                        />
+                     </div>
+                   </div>
+                 ))}
+               </div>
+               <div className="mt-8 pt-8 border-t border-zinc-100">
+                 <div className="bg-zinc-50 p-4 rounded-2xl flex items-center gap-4 border border-zinc-200/60">
+                   <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+                   <p className="text-[12px] font-bold text-zinc-600">Anomaly detected: Segment_2 shows high cognitive drift.</p>
+                 </div>
+               </div>
+            </div>
+          </div>
+          <div>
+            <div className="inline-block px-4 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-black rounded-full uppercase tracking-widest mb-6">
+               Neural Forensics
+            </div>
+            <h2 className="font-display text-5xl font-black text-zinc-900 leading-tight mb-8 tracking-tighter uppercase italic">
+              {t.landing?.showcase?.title || "Deep Neural Insights"}
+            </h2>
+            <p className="text-xl text-zinc-500 font-semibold mb-10 leading-relaxed">
+              {t.landing?.showcase?.subtitle || "Our proprietary engine decodes raw data into trajectory forecasts."}
+            </p>
+            <div className="grid gap-6">
+              {[
+                { title: t.landing?.showcase?.card1_title, desc: t.landing?.showcase?.card1_desc, icon: BrainCircuit },
+                { title: t.landing?.showcase?.card2_title, desc: t.landing?.showcase?.card2_desc, icon: Activity }
+              ].map((f, i) => (
+                <div key={i} className="flex gap-6 p-6 rounded-3xl hover:bg-zinc-50 transition-colors border border-transparent hover:border-zinc-200/60 group">
+                  <div className="w-14 h-14 rounded-2xl bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                    <f.icon className="w-7 h-7 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-black text-zinc-900 mb-1">{f.title}</h4>
+                    <p className="text-[15px] font-medium text-zinc-400">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. How it Works Section */}
+      <section id="architecture" className="py-32 bg-zinc-50 border-y border-zinc-200">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+          <div className="text-center mb-24">
+            <h2 className="font-display text-5xl font-black text-zinc-900 mb-6 tracking-tighter uppercase italic">{t.landing?.how_it_works?.title}</h2>
+            <div className="w-24 h-1.5 bg-indigo-600 mx-auto rounded-full" />
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-12 lg:gap-24 relative">
+             <div className="hidden lg:block absolute top-1/2 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-zinc-200 to-transparent -translate-y-[80px]" />
+             {[
+               { num: "01", title: t.landing?.how_it_works?.step1, desc: t.landing?.how_it_works?.step1_desc, icon: Database },
+               { num: "02", title: t.landing?.how_it_works?.step2, desc: t.landing?.how_it_works?.step2_desc, icon: Cpu },
+               { num: "03", title: t.landing?.how_it_works?.step3, desc: t.landing?.how_it_works?.step3_desc, icon: BarChart3 }
+             ].map((s, i) => (
+               <motion.div 
+                 key={i}
+                 initial={{ opacity: 0, y: 30 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true }}
+                 transition={{ delay: i * 0.2 }}
+                 className="relative z-10 text-center"
+               >
+                 <div className="w-20 h-20 bg-white border-4 border-zinc-100 rounded-[28px] mx-auto flex items-center justify-center text-zinc-900 shadow-2xl mb-10 transform hover:scale-110 transition-transform">
+                   <s.icon className="w-9 h-9" />
+                   <div className="absolute -top-3 -right-3 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[12px] font-black ring-4 ring-white">{s.num}</div>
+                 </div>
+                 <h4 className="text-2xl font-black text-zinc-900 mb-4">{s.title}</h4>
+                 <p className="text-[16px] font-bold text-zinc-400 max-w-[240px] mx-auto leading-relaxed">{s.desc}</p>
                </motion.div>
              ))}
-           </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* 7. CTA Section */}
-      <section className="relative py-40 overflow-hidden">
-        {/* Subtle grid accent */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/[0.03] via-[#020202] to-[#020202]"></div>
-        
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="max-w-[800px] mx-auto px-6 relative z-10 text-center flex flex-col items-center">
-          <motion.div variants={fadeUp} className="w-px h-16 bg-gradient-to-b from-transparent to-white/[0.2] mb-12"></motion.div>
-          <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-6xl font-medium text-white mb-6 tracking-tight">Ready to integrate?</motion.h2>
-          <motion.p variants={fadeUp} className="text-zinc-500 text-[15px] mb-12 max-w-xl font-light leading-relaxed">Deploy the internal infrastructure instantly and grant access to your verified academic teams.</motion.p>
-          
-          <motion.div variants={fadeUp}>
-            <Link to="/register" className="relative group inline-flex items-center justify-center bg-white text-black px-8 py-4 overflow-hidden">
-              <span className="font-mono text-[12px] uppercase tracking-[0.2em] font-bold relative z-10 group-hover:text-white transition-colors duration-300">Create Root Account</span>
-              <div className="absolute inset-0 bg-black translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-              {/* Corner accents */}
-              <span className="absolute top-1 left-1 w-1 h-1 bg-black group-hover:bg-white z-20 transition-colors"></span>
-              <span className="absolute top-1 right-1 w-1 h-1 bg-black group-hover:bg-white z-20 transition-colors"></span>
-              <span className="absolute bottom-1 left-1 w-1 h-1 bg-black group-hover:bg-white z-20 transition-colors"></span>
-              <span className="absolute bottom-1 right-1 w-1 h-1 bg-black group-hover:bg-white z-20 transition-colors"></span>
-            </Link>
-          </motion.div>
-        </motion.div>
+      {/* 6. Professional Pricing */}
+      <section id="pricing" className="py-32 bg-white">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="font-display text-5xl font-black text-zinc-900 mb-4 tracking-tighter uppercase italic">{t.landing?.pricing?.title}</h2>
+            <p className="text-zinc-500 font-bold text-lg leading-none">Scalable architecture for any institution size.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { tier: t.landing?.pricing?.free_title, price: "$0", features: ["1 Model integration", "Basic analytics", "50 Student entries"], btn: "Get Started" },
+              { tier: t.landing?.pricing?.pro_title, price: "$299", popular: true, features: ["Multi-model routing", "Deep semantic insights", "Unlimited students", "CSV Batch processing"], btn: "Deploy Instance" },
+              { tier: t.landing?.pricing?.enterprise_title, price: "Custom", features: ["Private cloud node", "SSO & IAM integration", "24/7 dedicated API support", "Custom ML training"], btn: "Contact Nodes" }
+            ].map((p, i) => (
+              <div key={i} className={`p-10 rounded-[40px] flex flex-col h-full border-2 transition-all ${p.popular ? 'bg-zinc-900 border-zinc-900 scale-105 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)]' : 'bg-white border-zinc-100'}`}>
+                <div className={`text-[12px] font-black uppercase tracking-widest mb-6 ${p.popular ? 'text-indigo-400' : 'text-zinc-400'}`}>
+                   {p.tier}
+                </div>
+                <div className={`text-5xl font-black mb-10 ${p.popular ? 'text-white' : 'text-zinc-900'}`}>{p.price}<span className="text-[18px] font-bold text-zinc-500 ml-1">/mo</span></div>
+                
+                <div className="flex-1 space-y-6 mb-12">
+                  {p.features.map((f, j) => (
+                    <div key={j} className="flex items-center gap-4">
+                      <CheckCircle2 className={`w-5 h-5 ${p.popular ? 'text-emerald-400' : 'text-indigo-600'}`} />
+                      <span className={`text-[15px] font-bold ${p.popular ? 'text-zinc-300' : 'text-zinc-500'}`}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Link to="/register" className={`w-full py-5 rounded-2xl font-black text-center transition-all ${p.popular ? 'bg-white text-zinc-900 hover:bg-zinc-100' : 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-xl'}`}>
+                  {p.btn}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
+
+      {/* 7. Footer */}
+      <footer className="bg-[#0A0A0A] pt-32 pb-16 text-white overflow-hidden relative">
+         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+         <div className="max-w-[1400px] mx-auto px-12 relative">
+            <div className="grid md:grid-cols-4 gap-24 mb-32">
+               <div className="md:col-span-1">
+                  <div className="flex items-center gap-3 mb-8">
+                    <BrainCircuit className="w-8 h-8 text-indigo-500" />
+                    <span className="font-display font-black text-2xl tracking-tighter italic">EDU-AI</span>
+                  </div>
+                  <p className="text-zinc-500 font-bold leading-relaxed pr-8">
+                    Propelling educational workflows into the era of specialized machine learning.
+                  </p>
+               </div>
+               
+               {[
+                 { title: "Core", links: ["Features", "Security", "Scale", "Ethics"] },
+                 { title: "Network", links: ["Documentation", "API Reference", "Status", "Github"] },
+                 { title: "Legal", links: ["Sovereignty", "Access Tiers", "Privacy", "Terms"] }
+               ].map((group, idx) => (
+                 <div key={idx}>
+                   <h5 className="text-[14px] font-black uppercase tracking-[0.2em] mb-10 text-zinc-200">{group.title}</h5>
+                   <ul className="space-y-5">
+                     {group.links.map((link, j) => (
+                       <li key={j}>
+                         <a href="#" className="text-zinc-500 hover:text-white transition-colors font-bold text-[15px]">{link}</a>
+                       </li>
+                     ))}
+                   </ul>
+                 </div>
+               ))}
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between items-center pt-16 border-t border-zinc-900">
+               <div className="text-[12px] font-bold text-zinc-600 mb-6 md:mb-0">
+                  © 2026 ED-TECH INDUSTRIAL CORE. ALL INFRASTRUCTURE RESERVED.
+               </div>
+               <div className="flex gap-10">
+                 <ShieldCheck className="w-6 h-6 text-zinc-800" />
+                 <Lock className="w-6 h-6 text-zinc-800" />
+                 <Workflow className="w-6 h-6 text-zinc-800" />
+               </div>
+            </div>
+         </div>
+      </footer>
     </div>
   );
 }

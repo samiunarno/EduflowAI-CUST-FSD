@@ -3,8 +3,10 @@ import { fetchApi } from "../lib/api";
 import { Upload, Activity, Database, GitMerge, Loader2, FileCode2, Zap, CheckCircle2, X } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function TrainerDashboard() {
+  const { t } = useLanguage();
   const [models, setModels] = useState<any[]>([]);
   const [logs, setLogs] = useState([]);
   const [isTraining, setIsTraining] = useState(false);
@@ -129,7 +131,7 @@ export default function TrainerDashboard() {
              <Database className="w-6 h-6 text-indigo-600" />
           </div>
           <h3 className="font-display font-bold text-zinc-900 text-[18px] mb-2 tracking-tight">
-            Execute Training Job
+            {t.dashboard.trainer_title}
           </h3>
           <p className="text-[13px] font-medium text-zinc-500 mb-6 leading-relaxed">Submit the active dataset payload to trigger deep learning optimization sequences.</p>
           
@@ -156,17 +158,17 @@ export default function TrainerDashboard() {
             )}
           </div>
           
-          <button 
-            onClick={handleTrain} 
-            disabled={isTraining}
-            className="w-full mt-auto bg-zinc-900 text-white px-4 py-3.5 rounded-xl text-[14px] font-semibold hover:bg-zinc-800 transition shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isTraining ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
-              </>
-            ) : "Submit Batch Job"}
-          </button>
+            <button 
+              onClick={handleTrain} 
+              disabled={isTraining}
+              className="w-full mt-auto bg-zinc-900 text-white px-4 py-3.5 rounded-xl text-[14px] font-semibold hover:bg-zinc-800 transition shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isTraining ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                </>
+              ) : t.dashboard.train_btn}
+            </button>
         </div>
       </div>
 
@@ -214,7 +216,7 @@ export default function TrainerDashboard() {
                         {m.accuracy}%
                       </div>
                       <div className={`text-[10px] font-bold uppercase tracking-widest ${selectedModelId === m._id ? 'text-indigo-400' : 'text-zinc-400'}`}>
-                        Accuracy
+                        {t.dashboard.accuracy}
                       </div>
                     </div>
                   </div>
@@ -357,7 +359,7 @@ export default function TrainerDashboard() {
       <div id="telemetry-section" className="md:col-span-3 bg-white rounded-[24px] border border-zinc-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         <div className="px-8 py-5 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
           <h3 className="font-display font-bold text-zinc-900 text-[16px] tracking-tight flex items-center gap-2">
-            <Activity className="w-4 h-4 text-zinc-400" /> Process Telemetry
+            <Activity className="w-4 h-4 text-zinc-400" /> {t.dashboard.history}
           </h3>
         </div>
         <div className="p-8">

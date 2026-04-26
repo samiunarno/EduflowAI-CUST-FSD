@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation, Link, useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, BrainCircuit, Activity, Database, LogOut, Menu, X, User } from 'lucide-react';
+import { LayoutDashboard, Users, BrainCircuit, Activity, Database, LogOut, Menu, X, User, Languages } from 'lucide-react';
+import { useLanguage } from './contexts/LanguageContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
@@ -10,6 +11,7 @@ import Profile from './pages/Profile';
 import Landing from './pages/Landing';
 
 export default function App() {
+  const { language, setLanguage, t } = useLanguage();
   const [user, setUser] = useState<{ role: string, name: string } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -46,15 +48,15 @@ export default function App() {
   // Determine Nav Items Based on Role
   const navItems = [];
   if (user?.role === 'admin') {
-    navItems.push({ label: 'Overview Dashboard', icon: LayoutDashboard, path: '/admin' });
-    navItems.push({ label: 'User Management', icon: Users, path: '/admin' });
-    navItems.push({ label: 'System Logs', icon: Activity, path: '/admin' });
+    navItems.push({ label: t.nav.overview, icon: LayoutDashboard, path: '/admin' });
+    navItems.push({ label: t.nav.users, icon: Users, path: '/admin' });
+    navItems.push({ label: t.nav.logs, icon: Activity, path: '/admin' });
   } else if (user?.role === 'ai_trainer') {
-    navItems.push({ label: 'Model Training', icon: BrainCircuit, path: '/trainer' });
-    navItems.push({ label: 'Dataset Registry', icon: Database, path: '/trainer' });
+    navItems.push({ label: t.nav.training, icon: BrainCircuit, path: '/trainer' });
+    navItems.push({ label: t.nav.registry, icon: Database, path: '/trainer' });
   } else if (user?.role === 'teacher') {
-    navItems.push({ label: 'Class Analytics', icon: LayoutDashboard, path: '/teacher' });
-    navItems.push({ label: 'Student Data', icon: Users, path: '/teacher' });
+    navItems.push({ label: t.nav.analytics, icon: LayoutDashboard, path: '/teacher' });
+    navItems.push({ label: t.nav.data, icon: Users, path: '/teacher' });
   }
 
   return (
@@ -93,7 +95,7 @@ export default function App() {
                  <div className="mt-6 text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Account</div>
                  <Link to="/profile" className={`px-4 py-3 flex items-center gap-3 text-[14px] font-medium rounded-xl cursor-pointer transition-all ${location.pathname === '/profile' ? 'bg-indigo-50/50 text-indigo-700 -ml-[1px] border-l-2 border-indigo-600' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 border-l-2 border-transparent -ml-[1px]'}`}>
                    <User className={`w-4 h-4 ${location.pathname === '/profile' ? 'text-indigo-600' : 'text-zinc-400'}`} />
-                   Profile Settings
+                   {t.nav.profile}
                  </Link>
               </nav>
             </div>
@@ -123,11 +125,20 @@ export default function App() {
               </button>
               <div className="hidden sm:block">
                 <div className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Workspace</div>
-                <div className="font-display font-bold text-zinc-900 text-[16px] capitalize tracking-tight">{location.pathname === '/profile' ? 'Profile Settings' : `${location.pathname.replace('/', '')} Dashboard`}</div>
+                <div className="font-display font-bold text-zinc-900 text-[16px] capitalize tracking-tight">{location.pathname === '/profile' ? t.nav.profile : `${location.pathname.replace('/', '')} Dashboard`}</div>
               </div>
             </div>
 
             <div className="flex items-center gap-4 md:gap-5">
+              <button 
+                onClick={() => setLanguage(language === 'en' ? 'zh' : 'en')}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-600 text-[12px] font-bold hover:bg-zinc-100 transition-colors"
+                title={language === 'en' ? 'Switch to Chinese' : '切换至英文'}
+              >
+                <Languages className="w-4 h-4 text-indigo-500" />
+                <span>{language === 'en' ? 'English' : '简体中文'}</span>
+              </button>
+
               <div 
                 className="text-right hidden sm:flex flex-col items-end cursor-pointer group"
                 onClick={() => navigate('/profile')}

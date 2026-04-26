@@ -42,7 +42,7 @@ export const generateFeedback = async (studentData: any) => {
         return completion.choices[0]?.message.content?.trim() || "Great progress, keep up the good work.";
     } else if (geminiAi) {
         const response = await geminiAi.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3-flash-preview",
           contents: prompt,
         });
         return response.text?.trim() || "Great progress, keep up the good work.";
@@ -72,7 +72,7 @@ export const evaluateFeedback = async (testData: string) => {
        return completion.choices[0]?.message.content?.trim() || "No feedback generated.";
     } else if (geminiAi) {
         const response = await geminiAi.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3-flash-preview",
           contents: prompt,
         });
         return response.text?.trim() || "No feedback generated.";

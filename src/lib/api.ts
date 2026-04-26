@@ -15,6 +15,12 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
     headers,
   });
 
+  if (response.status === 401) {
+    localStorage.clear();
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.error || `HTTP error ${response.status}`);

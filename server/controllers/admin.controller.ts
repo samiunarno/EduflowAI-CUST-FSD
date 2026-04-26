@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { User, ActivityLog, AIModel } from "../models/index.ts";
+import { v4 as uuidv4 } from "uuid";
+import db from "../db.ts";
 import { logActivity } from "../services/logger.service.ts";
 
 export const getAllUsers = async (req: any, res: any) => {
   try {
-    const users = await User.find({}, '-password');
+    const users = db.prepare('SELECT id, name, email, role, createdAt FROM users').all();
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch users" });
@@ -21,17 +22,16 @@ export const updateUserRole = async (req: any, res: any) => {
       return res.status(400).json({ error: "Invalid role specified" });
     }
 
-    const targetUser = await User.findById(id);
+    const targetUser: any = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
     if (!targetUser) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    targetUser.role = role;
-    await targetUser.save();
+    db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, id);
 
     await logActivity(req.user.id, `Updated role of ${targetUser.email} to ${role}`);
 
-    const users = await User.find({}, '-password');
+    const users = db.prepare('SELECT id, name, email, role, createdAt FROM users').all();
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Failed to update user role" });
@@ -41,17 +41,13 @@ export const updateUserRole = async (req: any, res: any) => {
 export const deleteUser = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const targetUser = await User.findById(id);
+    const targetUser: any = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
     if (!targetUser) return res.status(404).json({ error: "User not found" });
 
-    if (targetUser.role === 'admin' && req.user.id !== id) {
-        // Simple safety to not easily delete all admins, though admin can delete themselves if they want
-    }
-
-    await User.findByIdAndDelete(id);
+    db.prepare('DELETE FROM users WHERE id = ?').run(id);
     await logActivity(req.user.id, `Deleted system user: ${targetUser.email}`);
 
-    const users = await User.find({}, '-password');
+    const users = db.prepare('SELECT id, name, email, role, createdAt FROM users').all();
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Failed to delete user" });
@@ -60,9 +56,22 @@ export const deleteUser = async (req: any, res: any) => {
 
 export const getSystemLogs = async (req: any, res: any) => {
   try {
-    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(100).populate('userId', 'name email');
-    res.json(logs);
+    const logs = db.prepare(`
+      SELECT l.*, u.name as userName, u.email as userEmail 
+      FROM activity_logs l 
+      LEFT JOIN users u ON l.userId = u.id 
+      ORDER BY l.createdAt DESC 
+      LIMIT 100
+    `).all();
+    
+    const mappedLogs = logs.map((l: any) => ({
+      ...l,
+      userId: { id: l.userId, name: l.userName, email: l.userEmail }
+    }));
+    
+    res.json(mappedLogs);
   } catch (error) {
+    console.error("Fetch logs error:", error);
     res.status(500).json({ error: "Failed to fetch system logs" });
   }
 };
@@ -70,7 +79,7 @@ export const getSystemLogs = async (req: any, res: any) => {
 // AI Model Management
 export const getModels = async (req: any, res: any) => {
   try {
-    const models = await AIModel.find().sort({ createdAt: -1 });
+    const models = db.prepare('SELECT * FROM ai_models ORDER BY createdAt DESC').all();
     res.json(models);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch models" });
@@ -80,16 +89,15 @@ export const getModels = async (req: any, res: any) => {
 export const addModel = async (req: any, res: any) => {
   try {
     const { name, version, apiDetails } = req.body;
+    const id = uuidv4();
     
-    const newModel = await AIModel.create({
-      name,
-      version,
-      apiDetails,
-      isActive: false
-    });
+    db.prepare('INSERT INTO ai_models (id, name, version, apiDetails, isActive) VALUES (?, ?, ?, ?, ?)').run(
+      id, name, version, apiDetails, 0
+    );
 
     await logActivity(req.user.id, `Added new AI model: ${name} (v${version})`);
 
+    const newModel = db.prepare('SELECT * FROM ai_models WHERE id = ?').get(id);
     res.json(newModel);
   } catch (error) {
     res.status(500).json({ error: "Failed to add model" });
@@ -101,22 +109,20 @@ export const updateModelStatus = async (req: any, res: any) => {
     const { id } = req.params;
     const { isActive } = req.body;
 
-    const targetModel = await AIModel.findById(id);
+    const targetModel: any = db.prepare('SELECT * FROM ai_models WHERE id = ?').get(id);
     if (!targetModel) {
       return res.status(404).json({ error: "Model not found" });
     }
 
     if (isActive) {
-      // Deactivate all others first, assuming only 1 active model is supported at a time
-      await AIModel.updateMany({}, { isActive: false });
+      db.prepare('UPDATE ai_models SET isActive = 0').run();
     }
 
-    targetModel.isActive = isActive;
-    await targetModel.save();
+    db.prepare('UPDATE ai_models SET isActive = ? WHERE id = ?').run(isActive ? 1 : 0, id);
 
     await logActivity(req.user.id, `${isActive ? 'Activated' : 'Deactivated'} AI model: ${targetModel.name}`);
 
-    const models = await AIModel.find().sort({ createdAt: -1 });
+    const models = db.prepare('SELECT * FROM ai_models ORDER BY createdAt DESC').all();
     res.json(models);
   } catch (error) {
     res.status(500).json({ error: "Failed to update model status" });
